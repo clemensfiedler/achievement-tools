@@ -70,6 +70,7 @@ def plot(to_plot, title):
     ax.set_ylim(0,)
     ax.set_title(title)
     ax.set_ylabel("players with achievement")
+    plt.tight_layout()
 
     fig.savefig(re.sub("\s+", "_", title) + '.png')
 
@@ -102,6 +103,6 @@ if __name__ == '__main__':
         'Meritorious Service Medal': 'Illos'
     }
 
-    plot(ac_games, 'Finish Game')
-    plot(ac_comp, 'Complete 5 missions with companion')
-    plot(ac_me1, 'Finish main mission (ME1)')
+    plot(ac_games, 'Finished Game')
+    plot(ac_comp, 'Completed 5 missions with companion')
+    plot(ac_me1, 'Finished main missions (ME1)')
