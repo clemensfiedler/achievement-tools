@@ -14,6 +14,7 @@ import requests
 from lxml import html
 import json
 import os
+from datetime import datetime as dt
 
 class appid_db:
 
