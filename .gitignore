@@ -1,2 +1,4 @@
 __pycache__/
 temp/
+.pytest_cache/
+api_settings.toml
