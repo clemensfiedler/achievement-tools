@@ -1,8 +1,8 @@
 import steam_api_tools
 
 
-def test_get_app_list():
-    app_list = steam_api_tools.get_app_list()
+def test_fetch_app_list():
+    app_list = steam_api_tools.fetch_app_list()
     assert len(app_list) > 200_000, "The app list is too short."
 
     expected_keys = ["appid", "name"]

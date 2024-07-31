@@ -11,7 +11,7 @@ def get_api_key():
     return api_config["steam_api"]["api_key"]
 
 
-def get_app_list() -> List[Dict[str, Union[int, str]]]:
+def fetch_app_list() -> List[Dict[str, Union[int, str]]]:
     """Get a list of name and appid of all games on Steam.
 
     For details see https://partner.steamgames.com/doc/webapi/ISteamApps
