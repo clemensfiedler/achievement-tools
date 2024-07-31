@@ -1,7 +1,10 @@
 import requests
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 from lxml import html
 import tomllib
+import polars as pl
+import csv
+import os
 
 
 def get_api_key():
@@ -122,3 +125,95 @@ def get_achievement_stats(appid: int):
         achievements.append(achievement)
 
     return achievements
+
+
+class appid_db:
+    """Get a list of appids to with a matching game name.
+
+    Example:
+    ```
+    db = appid_db()
+    db.find_game("civ")
+    ```
+    """
+
+    def __init__(self, rebuild: bool = False, folder: str = "temp"):
+        self.appid_file = f"{folder}/app_list.csv"
+
+        if not os.path.exists(folder):
+            os.makedirs(folder, exist_ok=True)
+        if not os.path.exists(self.appid_file) or rebuild:
+            self.update_db()
+
+        appid_list = self._read_appid_file()
+
+        self.appid_to_game = self._prepare_appid_lookup(appid_list)
+        self.game_to_appid = {v.lower(): (v, k) for k, v in self.appid_to_game.items()}
+
+    def _read_appid_file(self) -> List[Tuple[str, str]]:
+        with open(self.appid_file, mode="r") as f:
+            csv_reader = csv.reader(f)
+            col_names = next(csv_reader)
+            assert col_names == [
+                "appid",
+                "name",
+            ], f"Wrong column names. Expected appid and names, got {col_names}"
+
+            return list(csv_reader)
+
+    def _prepare_appid_lookup(
+        self, appid_list: List[Tuple[str, str]]
+    ) -> Dict[int, str]:
+        appid_to_game = {}
+        for row in appid_list:
+            appid = int(row[0])
+            game_name = row[1]
+
+            appid_to_game[appid] = game_name
+
+        return appid_to_game
+
+    def _search_db(self, query):
+        """Search for a specific game."""
+        query = query.lower()
+        results = []
+
+        for k, entry in self.game_to_appid.items():
+            if k.startswith(query):
+                results.append(entry)
+
+        return results
+
+    def find_game(self, query):
+        results = self._search_db(query)
+        if len(results) == 0:
+            print(f"No results for '{query}'")
+            return
+
+        results_sorted = sorted(results, key=lambda x: x[0])
+
+        max_chars = 60
+        longest_title = max([len(r[0]) for r in results_sorted])
+        longest_title = min(longest_title, max_chars)
+
+        results_padded = [
+            f"{r[0][:max_chars].ljust(longest_title)}   {r[1]}".replace("\t", " ")
+            for r in results_sorted
+        ]
+
+        title = "Game".center(longest_title) + "   " + " AppID"
+        print(title, *results_padded, sep="\n")
+
+    def update_db(self):
+        app_list = fetch_app_list()
+
+        df_app_list = pl.DataFrame(app_list)
+        df_app_list.filter(pl.col("name") != "").write_csv(self.appid_file)
+
+
+def format_achievement_list(achievement_list):
+    """Format a game's list of achievements nicely."""
+    out_string = "\n".join(
+        [f"- {ac['description']} ({ac['title']})" for ac in achievement_list]
+    )
+    print(out_string)

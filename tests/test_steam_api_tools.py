@@ -1,4 +1,5 @@
 import steam_api_tools
+import os
 
 
 def test_fetch_app_list():
@@ -47,3 +48,13 @@ def test_get_achievement_stats():
             assert (
                 0 <= percentage <= 1
             ), f"Expected percentage between 0 and 1 for game appid {game}, but got {percentage}"
+
+
+def test_appid_db():
+    folder = "temp"
+    os.makedirs(folder, exist_ok=True)
+
+    db = steam_api_tools.appid_db(folder="temp", rebuild=True)
+    assert len(db._search_db("civ")) > 10, "civ not found!"
+    random_chars = "adsjgutynmvkdslf"
+    assert len(db._search_db(random_chars)) == 0, f"{random_chars} was found!"
